@@ -73,6 +73,29 @@ calclocation () {
 	esac
 }
 
+# Gets the ID of a specified directory by recursively traversing the path and creating folders where necessary
+# Stores it in RET
+# Not really fast, but got no better solution yet
+getfolderid () {
+	local path
+	IFS='/' read -r -a path <<< "$@"
+	local id='root'
+	local new_id
+	for dir in "${path[@]}"
+	do
+		#echo "dir="$dir
+		new_id=$(gdrive list -m 1 -q "'$id' in parents and name = '$dir' and trashed = false" --no-header | awk '{print $1;}')
+		#echo "Found "$new_id
+		if [ -z "$new_id" ]; then
+			id=$(gdrive mkdir -p $id $dir | awk '{print $2;}')
+			#echo "Created "$id
+		else
+			id=$new_id
+		fi
+	done
+	RET=$id
+}
+
 # Asks for some value, and stores it in RET
 ask () {
 	echo "$1" "$2"
