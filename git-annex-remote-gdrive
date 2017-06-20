@@ -241,18 +241,15 @@ while read -r line; do
 			calclocation "$key"
 			# Note that it's not a failure to remove a
 			# key that is not present.
-			if remove_result=$(gdrive delete --retries 1 "$LOC$key" 2>&1); then
-		                echo REMOVE-SUCCESS "$key"
-	                else
-	    		   	# gdrive 1.29 used Failed to purge: Couldn't find directory:
-				# gdrive 1.30 used no such file or directory
-				# gdrive 1.33 uses directory not found
-		                if echo $remove_result | grep " Failed to purge: Couldn't find directory: " >&2 ||
-				   echo $remove_result | grep ' no such file or directory' ||
-				   echo $remove_result | grep ' directory not found' >&2
-				then   
-					echo REMOVE-SUCCESS "$key"
-		                else
+			if [[ ! $(gdrive list -q "name = '$key' " --no-header 2>&1) ]]
+			then
+				echo REMOVE-SUCCESS "$key"
+			else
+				getfolderid "$LOC"
+				FID=$(gdrive list -q "name = '$key' and '$FID' in parents and trashed = false" -m 1 --no-header | awk '{print $1}')
+				if runcmd gdrive delete "$FID"; then
+		                	echo REMOVE-SUCCESS "$key"
+	                	else
                 		        echo REMOVE-FAILURE "$key"
 				fi
 			fi
