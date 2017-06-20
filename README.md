@@ -22,7 +22,7 @@ trips to and from your cloud provider and may be faster. Additional discussion a
 ## Implementation Note
 
 At this time, this remote does NOT store your credentials in git-annex. Users are responsible for ensuring a
-~/.rclone.conf file with valid credentials is available.
+config file with valid credentials is available.
 
 ## Issues, Contributing
 
@@ -31,4 +31,4 @@ Please submit a pull request or create a new issue for problems or potential imp
 
 ## License
 
-Licensed under the GPLv3.
+Copyright 2017 Silvio Ankermann. Licensed under the GPLv3.
