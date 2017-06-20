@@ -187,13 +187,15 @@ while read -r line; do
 			case "$2" in
 				STORE)
 					# Store the file to a location
-					# based on the key.
+					# based on the key. Check if present first.
 					# XXX when at all possible, send PROGRESS
 					calclocation "$key"
 					if [ ! -e "$file" ]; then
 						echo TRANSFER-FAILURE STORE "$key" "asked to store non-existent file $file"
 					else	
-						if getfolderid "$LOC" && runcmd gdrive upload -p $FID "$file"; then
+						if (gdrive list -q "name = '$key' and trashed = false" --no-header --name-width 0 2>&1 | grep "$key" &>/dev/null) ||
+							(getfolderid "$LOC" && runcmd gdrive upload -p $FID "$file")
+						then
 							echo TRANSFER-SUCCESS STORE "$key"
 						else
 							echo TRANSFER-FAILURE STORE "$key"
@@ -204,7 +206,10 @@ while read -r line; do
 					# Retrieve from a location based on
 					# the key, outputting to the file.
 					# XXX when easy to do, send PROGRESS
-					FID=$(gdrive list -q "name = '$key' " --no-header | awk '{print $1}')
+					#
+					# How to handle keys that are available multiple times?
+					# At present we just take the first. Not sure if that's going to be a problem
+					FID=$(gdrive list -q "name = '$key' and trashed = false" -m 1 --no-header | awk '{print $1}')
 					# http://stackoverflow.com/questions/31396985/why-is-mktemp-on-os-x-broken-with-a-command-that-worked-on-linux
 					if GA_RC_TEMP_DIR=$(mktemp -d "${TMPDIR:-/tmp}/gdrive-annex-tmp.XXXXXXXXX") &&
 					    runcmd gdrive download $FID --path $GA_RC_TEMP_DIR &&
@@ -219,7 +224,7 @@ while read -r line; do
 		;;
 		CHECKPRESENT)
 			key="$2"
-			if ! check_result=$(gdrive list -q "name = '$key' " --no-header --bytes --name-width 0 2>&1)
+			if ! check_result=$(gdrive list -q "name = '$key' and trashed = false" --no-header --bytes --name-width 0 2>&1)
 			then
 				echo CHECKPRESENT-UNKNOWN "$key" "remote currently unavailable or git-annex-remote-gdrive failed to parse gdrive output"
 			else
