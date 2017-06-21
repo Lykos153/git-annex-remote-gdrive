@@ -41,8 +41,7 @@ validate_layout() {
 		lower|directory|nodir|mixed|frankencase)
 			;;
 		*)
-			echo "INITREMOTE-FAILURE gdrive_layout setting not recognized"
-			exit 1
+			return 1
 			;;
 	esac		
 }
@@ -145,6 +144,7 @@ while read -r line; do
 			fi
 			if [ "$REMOTE_PREFIX" == "/" ]; then
 		                echo INITREMOTE-FAILURE "storing objects directly in the root (/) is not supported"
+				exit 1
 			fi
 			setconfig prefix $REMOTE_PREFIX
 
@@ -154,7 +154,10 @@ while read -r line; do
 			
 			getconfig gdrive_layout
 			GDRIVE_LAYOUT=$RET
-			validate_layout
+			if ! validate_layout; then
+				echo "INITREMOTE-FAILURE gdrive_layout setting not recognized"
+				exit 1
+			fi
 			setconfig gdrive_layout $GDRIVE_LAYOUT
 
 			if [ -z "$CONFIG_PATH" ]; then
@@ -167,6 +170,7 @@ while read -r line; do
            			echo INITREMOTE-SUCCESS
            		else
            	     		echo INITREMOTE-FAILURE "Failed to create directory on remote. Ensure that gdrive has been configured correctly and has permission to access your Drive."
+				exit 1
            	 	fi
 		;;
 		PREPARE)
@@ -174,17 +178,35 @@ while read -r line; do
 			# and do anything needed to get ready for using the
 			# special remote here.
 
+			getconfig prefix
+			REMOTE_PREFIX="$RET"
+
+			if ! getfolderid "$REMOTE_PREFIX"; then
+           	     		PREPARE_FAILURE="Failed to create directory on remote. Ensure that gdrive has been configured correctly and has permission to access your Drive."
+			fi
+
+			ROOT_ID="$FID"
 			getconfig root_id
-			ROOT_ID="$RET"
+
+			if [[ $ROOT_ID != $RET ]]; then
+				PREPARE_FAILURE="ID of root folder changed. Was the repo moved? Please check remote and re-run git annex enableremote"
+			fi
 			
 			getconfig config_path 
 			CONFIG_PATH="$RET"
 			
 			getconfig gdrive_layout
 			GDRIVE_LAYOUT="$RET"
-			validate_layout
+			if ! validate_layout; then
+				PREPARE_FAILURE="gdrive_layout setting not recognized. Please check remote and re-run git annex enableremote"
+			fi
 
-            echo PREPARE-SUCCESS
+			if [ -z "$PREPARE_FAILURE" ]; then
+				echo PREPARE-SUCCESS
+			else
+				echo PREPARE-FAILURE "$PREPARE_FAILURE"
+				exit 1
+			fi
 		;;
 		TRANSFER)
 			key="$3"
