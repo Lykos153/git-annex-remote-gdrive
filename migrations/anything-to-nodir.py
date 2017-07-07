@@ -12,10 +12,19 @@ class FileNotFoundException(Exception):
     pass
 class FolderNotEmptyException(Exception):
     pass
-class AmbigiousFoldernameException(Exception):
+class AmbiguousFoldernameException(Exception):
     pass
 class InputError (Exception):
     pass
+class bcolors:
+    HEADER = '\033[95m'
+    OKBLUE = '\033[94m'
+    OKGREEN = '\033[92m'
+    WARNING = '\033[93m'
+    FAIL = '\033[91m'
+    ENDC = '\033[0m'
+    BOLD = '\033[1m'
+    UNDERLINE = '\033[4m'
 
 # Recursively moves all files to root
 def traverse(current_folder, current_path):
@@ -56,7 +65,7 @@ def getfolder(path):
         elif (len(file_list) == 0):
             raise FileNotFoundException (current_path)
         else:
-            raise AmbigiousFoldernameException (current_path)
+            raise AmbiguousFoldernameException (current_path)
     return current_folder
 
 
@@ -90,19 +99,21 @@ root = getfolder(args.root)
 if (root == drive.CreateFile({'id': 'root'})):
     raise InputError("Root is not an allowed prefix")
 
-answer= input (f"This will move all files from subdirectories in {args.root} directly to {args.root} and delete all empty subfolders on the way. OK (y/n)? ")
+answer= input (f"{bcolors.WARNING}This will move all files from subdirectories in /{args.root} directly to /{args.root} and delete all empty subfolders on the way. OK (y/n)?{bcolors.ENDC} ")
 if answer.lower() != "y":
     raise SystemExit
 
 try:
     traverse(root, args.root)
 except (KeyboardInterrupt, SystemExit):
-    print ("Exiting.")
+    print (f"\n{bcolors.WARNING}Exiting.")
+    print ("The remote is in an undefined state now. Re-run this script before using git-annex on it.")
 else:
-    print ("Finished.")
+    print (f"\n{bcolors.OKGREEN}Finished.")
+    print (f"The remote has now 'nodir' structure. Remember to change the layout via 'git annex enableremote' and consider checking consistency with 'git annex fsck --from=<remotename> --fast'")
 
 print ( f"Processed {deleted_count} subfolders" )
-print ( f"Moved {moved_count} files")
+print ( f"Moved {moved_count} files{bcolors.ENDC}")
 
 
 
