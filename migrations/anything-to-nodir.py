@@ -8,9 +8,6 @@ from pydrive.drive import GoogleDrive
 import os.path
 import argparse
 
-# for debugging
-from pprint import pprint
-
 class FileNotFoundException(Exception):
     pass
 class FolderNotEmptyException(Exception):
@@ -20,25 +17,9 @@ class AmbigiousFoldernameException(Exception):
 class InputError (Exception):
     pass
 
-gauth = GoogleAuth()
-gauth.LoadCredentialsFile("token.json")
-if gauth.credentials is None:
-    gauth.LocalWebserverAuth()
-elif gauth.access_token_expired:
-    gauth.Refresh()
-else:
-    gauth.Authorize()
-gauth.SaveCredentialsFile("token.json")
-
-drive = GoogleDrive(gauth)
-
-parser = argparse.ArgumentParser()
-parser.add_argument("root", help="The ID of the root folder. ")
-args = parser.parse_args()
-
-
+# Recursively moves all files to root
 def traverse(current_folder, current_path):
-    print (f"In {current_path}")
+    global moved_count, deleted_count
     for file_list in drive.ListFile({'q': f"'{current_folder['id']}' in parents and trashed=false", 'maxResults': 100}):
         for file_ in file_list:
             if file_['mimeType'] == 'application/vnd.google-apps.folder':
@@ -47,9 +28,12 @@ def traverse(current_folder, current_path):
                 print ( f"Moving {current_path}/{file_['title']}")
                 file_['parents'] = [{'kind': 'drive#parentReference', 'id': root['id']}]
                 file_.Upload()
+                moved_count += 1
     if (current_folder != root):
         delete_empty (current_folder, current_path)
+        deleted_count += 1
 
+# Checks if folder is empty, then deletes it
 def delete_empty (folder, path):
     file_list = drive.ListFile({'q': f"'{folder['id']}' in parents and trashed=false"}).GetList()
     if (len(file_list) == 0):
@@ -58,10 +42,9 @@ def delete_empty (folder, path):
     else:
         raise FolderNotEmptyException (path)
 
-
+# Returns the file object of the repository's root
 def getfolder(path):
     path_list = path.split('/')
-    pprint(path_list)
     current_folder = drive.CreateFile({'id': 'root'})
     current_path = ""
     for folder in path_list:
@@ -76,14 +59,50 @@ def getfolder(path):
             raise AmbigiousFoldernameException (current_path)
     return current_folder
 
+
+
+parser = argparse.ArgumentParser()
+parser.add_argument("root", help="The ID of the root folder. ")
+parser.add_argument("--token", help="If defined, access token will be stored in and loaded from this file. By default, no credentials are stored.")
+args = parser.parse_args()
+
+# Authentication
+gauth = GoogleAuth()
+if args.token:
+    gauth.LoadCredentialsFile(args.token)
+
+if gauth.credentials is None:
+    gauth.LocalWebserverAuth()
+elif gauth.access_token_expired:
+    gauth.Refresh()
+else:
+    gauth.Authorize()
+
+if args.token:
+    gauth.SaveCredentialsFile(args.token)
+
+# Counter for statistics
+moved_count = 0
+deleted_count = 0
+
+drive = GoogleDrive(gauth)
 root = getfolder(args.root)
 if (root == drive.CreateFile({'id': 'root'})):
-        raise InputError("Root is not an allowed prefix")
+    raise InputError("Root is not an allowed prefix")
 
-pprint (root['title'])
+answer= input (f"This will move all files from subdirectories in {args.root} directly to {args.root} and delete all empty subfolders on the way. OK (y/n)? ")
+if answer.lower() != "y":
+    raise SystemExit
 
-traverse(root, args.root)
+try:
+    traverse(root, args.root)
+except (KeyboardInterrupt, SystemExit):
+    print ("Exiting.")
+else:
+    print ("Finished.")
+
+print ( f"Processed {deleted_count} subfolders" )
+print ( f"Moved {moved_count} files")
 
 
 
-#pprint(list(files))
