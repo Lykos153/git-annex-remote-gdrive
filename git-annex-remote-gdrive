@@ -151,6 +151,10 @@ while read -r line; do
 			getconfig config_path
 			CONFIG_PATH=$RET
 			setconfig config_path $CONFIG_PATH
+
+			getconfig traverse
+			TRAVERSE_MODE=$RET
+			setconfig traverse $TRAVERSE_MODE
 			
 			getconfig gdrive_layout
 			GDRIVE_LAYOUT=$RET
@@ -195,6 +199,10 @@ while read -r line; do
 			getconfig config_path 
 			CONFIG_PATH="$RET"
 			
+			getconfig traverse
+			TRAVERSE_MODE=$RET
+			echo $TRAVERSE_MODE >&2
+			
 			getconfig gdrive_layout
 			GDRIVE_LAYOUT="$RET"
 			if ! validate_layout; then
@@ -219,7 +227,14 @@ while read -r line; do
 					if [ ! -e "$file" ]; then
 						echo TRANSFER-FAILURE STORE "$key" "asked to store non-existent file $file"
 					else	
-						if (gdrive list -q "name = '$key' and trashed = false" --no-header --name-width 0 2>&1 | grep "$key" &>/dev/null) ||
+						if [[ $TRAVERSE_MODE == "relaxed" ]]; then
+							query="name = '$key' and trashed = false"
+						else
+							calcparent $key
+							query="name = '$key' and '$FID' in parents and trashed = false"
+						fi
+
+						if (gdrive list -q "$query" --no-header --name-width 0 2>&1 | grep "$key" &>/dev/null) ||
 							(calcparent "$key" && runcmd gdrive upload -p $FID "$file")
 						then
 							echo TRANSFER-SUCCESS STORE "$key"
@@ -235,7 +250,13 @@ while read -r line; do
 					#
 					# How to handle keys that are available multiple times?
 					# At present we just take the first. Not sure if that's going to be a problem
-					FID=$(gdrive list -q "name = '$key' and trashed = false" -m 1 --no-header | awk '{print $1}')
+					if [[ $TRAVERSE_MODE == "relaxed" ]]; then
+						query="name = '$key' and trashed = false"
+					else
+						calcparent $key
+						query="name = '$key' and '$FID' in parents and trashed = false"
+					fi
+					FID=$(gdrive list -q "$query" -m 1 --no-header | awk '{print $1}')
 					# http://stackoverflow.com/questions/31396985/why-is-mktemp-on-os-x-broken-with-a-command-that-worked-on-linux
 					if GA_RC_TEMP_DIR=$(mktemp -d "${TMPDIR:-/tmp}/gdrive-annex-tmp.XXXXXXXXX") &&
 					    runcmd gdrive download $FID --path $GA_RC_TEMP_DIR &&
@@ -250,7 +271,14 @@ while read -r line; do
 		;;
 		CHECKPRESENT)
 			key="$2"
-			if ! check_result=$(gdrive list -q "name = '$key' and trashed = false" --no-header --bytes --name-width 0 2>&1)
+			if [[ $TRAVERSE_MODE == "relaxed" ]]; then
+				query="name = '$key' and trashed = false"
+			else
+				calcparent $key
+				query="name = '$key' and '$FID' in parents and trashed = false"
+			fi
+
+			if ! check_result=$(gdrive list -q "$query" --no-header --bytes --name-width 0 2>&1)
 			then
 				echo CHECKPRESENT-UNKNOWN "$key" "remote currently unavailable or git-annex-remote-gdrive failed to parse gdrive output"
 			else
@@ -264,14 +292,15 @@ while read -r line; do
 		;;
 		REMOVE)
 			key="$2"
+			calcparent "$key"
+			query="name = '$key' and '$FID' in parents and trashed = false"
 			# Note that it's not a failure to remove a
 			# key that is not present.
-			if [[ ! $(gdrive list -q "name = '$key' " --no-header 2>&1) ]]
+			if [[ ! $(gdrive list -q "$query" --no-header 2>&1) ]]
 			then
 				echo REMOVE-SUCCESS "$key"
 			else
-				calcparent "$key"
-				FID=$(gdrive list -q "name = '$key' and '$FID' in parents and trashed = false" -m 1 --no-header | awk '{print $1}')
+				FID=$(gdrive list -q "$query" -m 1 --no-header | awk '{print $1}')
 				if runcmd gdrive delete "$FID"; then
 		                	echo REMOVE-SUCCESS "$key"
 	                	else
