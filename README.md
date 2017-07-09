@@ -36,7 +36,9 @@ The initremote command calls out to GPG and can hang if a machine has insufficie
 
 ## Using an existing remote (note on repository layout)
 
-git-annex-remote-gdrive supports all repository layouts currently supported by git-annex-remote-rclone. You can specify the layout with the option `gdrive_layout` on `initremote` or `enableremote`. That being said, there is no reason to use a layout other than `nodir` on a new remote. Google Drive 
+git-annex-remote-gdrive supports all repository layouts currently supported by git-annex-remote-rclone. You can specify the layout with the option `gdrive_layout` on `initremote` or `enableremote`. That being said, there is no reason to use a layout other than `nodir` on a new remote. Google Drive requires us to traverse the whole path on each file operation, which results in a noticeable performance loss (especially during upload). On the other hand, it's perfectly fine to have thousands of files in one Google Drive folder as it doesn't event use a folder structure internally. So the best option for special remotes on GD is the `nodir` layout.
+
+If you're switching from rclone to gdrive for your special repo and you want to keep your layout, that's fine. Gdrive is still significantly faster than rclone on Google Drive.  But you might want to consider migrating the layout to `nodir` to get the best performance.
 
 The following layouts are currently supported:
  * `nodir` - No directory hierarchy is used.
