@@ -35,6 +35,7 @@ setconfig () {
 
 validate_layout() {
 	if [ -z "$GDRIVE_LAYOUT" ]; then
+		echo "No layout specified. Using 'nodir'." >&2
 		GDRIVE_LAYOUT="nodir"
 	fi
 	case "$GDRIVE_LAYOUT" in
@@ -155,6 +156,10 @@ while read -r line; do
 			setconfig config_path $CONFIG_PATH
 			
 			getconfig gdrive_layout
+			if [ -z "$RET" ]; then
+				getconfig rclone_layout
+				if [ "$RET" ]; then echo "Importing rclone layout $RET" >&2 ; fi
+			fi
 			GDRIVE_LAYOUT=$RET
 			if ! validate_layout; then
 				echo "INITREMOTE-FAILURE gdrive_layout setting not recognized"
