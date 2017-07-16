@@ -77,6 +77,9 @@ args = parser.parse_args()
 
 # Authentication
 gauth = GoogleAuth()
+gauth.settings['client_config_backend'] = 'settings'
+gauth.settings['client_config'] = {'client_id': '914459249505-ji3d9v92ealsmc4a63ns66uoj9t6mdf0.apps.googleusercontent.com', 'client_secret': 'ivD4Ms4eROu10sHc43ojgX05', 'auth_uri':'https://accounts.google.com/o/oauth2/auth', 'token_uri':'https://accounts.google.com/o/oauth2/token', 'revoke_uri': None, 'redirect_uri': 'urn:ietf:wg:oauth:2.0:oob'}
+
 if args.token:
     gauth.LoadCredentialsFile(args.token)
 
