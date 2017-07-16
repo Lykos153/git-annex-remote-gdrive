@@ -71,7 +71,7 @@ def getfolder(path):
 
 
 parser = argparse.ArgumentParser()
-parser.add_argument("root", help="The ID of the root folder. ")
+parser.add_argument("root", help="The root folder of the repository. Enter exactly what's specified as 'prefix', by default that's 'git-annex'.")
 parser.add_argument("--token", help="If defined, access token will be stored in and loaded from this file. By default, no credentials are stored.")
 args = parser.parse_args()
 
