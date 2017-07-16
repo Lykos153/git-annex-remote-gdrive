@@ -63,9 +63,9 @@ def getfolder(path):
             print (f"Found {folder}")
             current_folder = file_list[0]
         elif (len(file_list) == 0):
-            raise FileNotFoundException (current_path)
+            raise FileNotFoundException (f"{current_path} not found")
         else:
-            raise AmbiguousFoldernameException (current_path)
+            raise AmbiguousFoldernameException (f"There are two or more folders named {current_path}")
     return current_folder
 
 
@@ -95,9 +95,15 @@ moved_count = 0
 deleted_count = 0
 
 drive = GoogleDrive(gauth)
-root = getfolder(args.root)
+try:
+    root = getfolder(args.root)
+except (FileNotFoundException, AmbiguousFoldernameException) as e:
+    print(str(e))
+    raise SystemExit
+
 if (root == drive.CreateFile({'id': 'root'})):
-    raise InputError("Root is not an allowed prefix")
+    print("Root is not an allowed prefix")
+    raise SystemExit
 
 answer= input (f"{bcolors.WARNING}This will move all files from subdirectories in /{args.root} directly to /{args.root} and delete all empty subfolders on the way. OK (y/n)?{bcolors.ENDC} ")
 if answer.lower() != "y":
