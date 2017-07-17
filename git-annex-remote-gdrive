@@ -120,6 +120,9 @@ ROOT_ID='root'
 # This has to come first, to get the protocol started.
 echo VERSION 1
 
+# Start info messages in a new line
+echo "" >&2
+
 while read -r line; do
     # Strip trailing carriage return, if present
     line="${line%$'\r'}"
@@ -167,6 +170,10 @@ while read -r line; do
 				exit 1
 			fi
 			setconfig gdrive_layout $GDRIVE_LAYOUT
+
+			if [ "$GDRIVE_LAYOUT" != "nodir" ] && [ "$TRAVERSE_MODE" != "relaxed" ]; then
+				echo "Note that '$GDRIVE_LAYOUT' layout is not optimal for Google Drive. Consider migrating to 'nodir' or enabling 'traverse=relaxed' to speed up read operations." >&2
+			fi
 
 			if [ -z "$CONFIG_PATH" ]; then
 				CONFIG_PATH="~/.gdrive"
