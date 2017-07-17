@@ -7,9 +7,9 @@ This wrapper around [gdrive](https://github.com/prasmussen/gdrive) based on [git
 ## Requirements
 The current version of git-annex-remote-gdrive has been tested with gdrive version 2.1.0. Gdrive may change its output in the future, so updates to this software may be required for compatibility.
 
-To simplify maintenace, when I make updates to git-annex-remote-rclone, I test only against the current stable
-version of rclone. While I am not currently explicitly dropping support for older versions, I am also not
-performing additional integration tests with older rclone versions.
+To simplify maintenace, when I make updates to git-annex-remote-gdrive, I test only against the current stable
+version of gdrive. While I am not currently explicitly dropping support for older versions, I am also not
+performing additional integration tests with older gdrive versions.
 
 ## Installation
 
@@ -36,7 +36,7 @@ The initremote command calls out to GPG and can hang if a machine has insufficie
 
 ## Using an existing remote (note on repository layout)
 
-If you're switching from git-annex-remote-rclone, it's as simple as typing `git annex enableremote <remote_name> externaltype=gdrive`. git-annex-remote-gdrive supports all repository layouts currently supported by git-annex-remote-rclone and will automatically import its options if nothing is specified. You can explicitely specify the layout with the option `gdrive_layout` (which works on `initremote` and `enableremote`). You can keep your repository layout if you want. Even with a two-level hierarchy, gdrive is still significantly faster than rclone on Google Drive (~factor 3).  But you might want to consider migrating the layout to `nodir` to get the best performance.
+If you're switching from git-annex-remote-rclone, it's as simple as typing `git annex enableremote <remote_name> externaltype=gdrive`. git-annex-remote-gdrive supports all repository layouts currently supported by git-annex-remote-rclone and will automatically import its options if nothing is specified. You can explicitely specify the layout with the option `gdrive_layout` (which works on `initremote` and `enableremote`). You can keep your repository layout if you want. Even with a two-level hierarchy, gdrive is still significantly faster than rclone on Google Drive (~factor 3).  But you might want to consider [migrating](https://github.com/Lykos153/git-annex-remote-gdrive/tree/master/migrations) the layout to `nodir` to get the best performance.
 
 Google Drive requires us to traverse the whole path on each file operation, which results in a noticeable performance loss (especially during upload). On the other hand, it's perfectly fine to have thousands of files in one Google Drive folder as it doesn't event use a folder structure internally. So the best option for special remotes on GD is the `nodir` layout.
 
