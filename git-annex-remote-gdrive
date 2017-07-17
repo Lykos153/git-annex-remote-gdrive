@@ -85,18 +85,15 @@ getfolderid () {
 	local folder_result
 	for dir in "${path[@]}"
 	do
-		echo "getfolderid: dir="$dir >&2
 		if ! folder_result=$(gdrive list -m 1 -q "'$id' in parents and name = '$dir' and trashed = false" --no-header)
 		then return 1
 		fi
 		new_id=$(echo $folder_result | awk '{print $1;}')
-		echo "getfolderid: found "$new_id >&2
 		if [ -z "$new_id" ]; then
 			if ! folder_result=$(gdrive mkdir -p $id $dir)
 			then return 2
 			fi
 			id=$(echo $folder_result | awk '{print $2;}')
-			echo "getfolderid: created "$id >&2
 		else
 			id=$new_id
 		fi
@@ -208,7 +205,6 @@ while read -r line; do
 			
 			getconfig traverse
 			TRAVERSE_MODE=$RET
-			echo $TRAVERSE_MODE >&2
 			
 			getconfig gdrive_layout
 			GDRIVE_LAYOUT="$RET"
