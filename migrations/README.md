@@ -5,11 +5,11 @@ __Still testing, use with care__
 This script converts any folder structure on Google Drive to a `nodir` repository layout. It will recursively move all files in subdirectories to the top folder.
 
 ## Requirements
-This scripts requires Python 3.6 and the libraries argparse and [pydrive](https://github.com/googledrive/PyDrive).
+This scripts requires Python 3.6 and the libraries argparse, [pydrive](https://github.com/googledrive/PyDrive) and [tenacity](https://github.com/jd/tenacity).
 
 To install them via pip:
 
-`pip install argparse PyDrive`
+`pip install argparse PyDrive tenacity`
 
 ## Usage
 

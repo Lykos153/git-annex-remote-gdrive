@@ -5,8 +5,10 @@
 
 from pydrive.auth import GoogleAuth
 from pydrive.drive import GoogleDrive
+from pydrive.files import ApiRequestError
 import os.path
 import argparse
+import tenacity
 
 class FileNotFoundException(Exception):
     pass
@@ -27,6 +29,7 @@ class bcolors:
     UNDERLINE = '\033[4m'
 
 # Recursively moves all files to root
+@tenacity.retry(wait=tenacity.wait_fixed(2), retry=tenacity.retry_if_exception_type(ApiRequestError))
 def traverse(current_folder, current_path):
     global moved_count, deleted_count
     for file_list in drive.ListFile({'q': f"'{current_folder['id']}' in parents and trashed=false", 'maxResults': 100}):
