@@ -1,15 +1,15 @@
-# anything-to-nodir.py
-
-__Still testing, use with care__
+# Migrate anything to 'nodir'
 
 This script converts any folder structure on Google Drive to a `nodir` repository layout. It will recursively move all files in subdirectories to the top folder.
+
+__Stability note:__ This script has been sucessfully tested on various remotes with ~50000 keys. _Although it should be reliable, please make sure you have additional copies of all data before you proceed. After the migration is finished, run [fsck](https://git-annex.branchable.com/git-annex-fsck/) on the remote._
 
 ## Requirements
 This scripts requires Python 3.6 and the libraries argparse, [pydrive](https://github.com/googledrive/PyDrive) and [tenacity](https://github.com/jd/tenacity).
 
 To install them via pip:
 
-`pip install argparse PyDrive tenacity`
+`pip install argparse pydrive tenacity`
 
 ## Usage
 
@@ -27,9 +27,14 @@ optional arguments:
 ```
 As it's intended for single use it will not store your credentials by default. If you want to run it on multiple remotes or convert your remote in multiple steps, you can specify a file in which to store the access token. If the same file is specified again, the script will re-use the access token.
 
-This example will make the folder /git-annex a `nodir` remote and store the access token in `token.json`
+__This example__ will make the folder `/git-annex` a `nodir` remote and store the access token in `token.json`:
 
 ` ./anything-to-nodir.py git-annex --token token.json `
+
+Afterwards, the remote should be checked for consistency:
+
+`git annex fsck --from=google --all --fast`
+
 
 ## Keep using remote while migrating
 
@@ -42,6 +47,7 @@ To use the remote while migrating:
 1. `git annex enableremote <remotename> gdrive_layout=nodir traverse=relaxed` - This will put new uploaded files into the right folder but allows to read the files which are not yet migrated
 2. `anything-to-nodir.py <remote root>` - Run the migration
 3. `git annex enableremote <remotename> traverse=strict` - Revert to strict mode. git-annex-remote-gdrive will work only work on the `nodir` layout
+4. `git annex fsck --from=<remotename> --all --fast` - Check the remote for consistency.
 
 ## Running the script on a headless server
 
@@ -53,7 +59,7 @@ You can use the `--token` option for this.
 
 ## Issues, Contributing
 
-The migration is not very fast (~5 minutes / 100 files). PyDrive [still uses Google's API v2](https://github.com/googledrive/PyDrive/issues/99#issuecomment-314091631), maybe that's why - maybe not. Fortunately it has to be done only once and we can keep using the repo meanwhile.
+The migration is not very fast (~20 files / minute). PyDrive [still uses Google's API v2](https://github.com/googledrive/PyDrive/issues/99#issuecomment-314091631), maybe that's why - maybe not. The API calls could be done asynchronously as well. Fortunately it has to be run only once and we can keep using the repo meanwhile.
 
 If you run into any problems, please check for issues on [GitHub](https://github.com/Lykos153/git-annex-remote-gdrive/issues).
 Please submit a pull request or create a new issue for problems or potential improvements.
