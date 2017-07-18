@@ -6,6 +6,7 @@
 from pydrive.auth import GoogleAuth
 from pydrive.drive import GoogleDrive
 from pydrive.files import ApiRequestError
+from googleapiclient.errors import HttpError
 import os.path
 import argparse
 import tenacity
@@ -29,7 +30,7 @@ class bcolors:
     UNDERLINE = '\033[4m'
 
 # Recursively moves all files to root
-@tenacity.retry(wait=tenacity.wait_fixed(2), retry=tenacity.retry_if_exception_type(ApiRequestError))
+@tenacity.retry(wait=tenacity.wait_fixed(2), retry=(tenacity.retry_if_exception_type(ApiRequestError) | tenacity.retry_if_exception_type(HttpError)))
 def traverse(current_folder, current_path):
     global moved_count, deleted_count
     if (current_folder == root):
