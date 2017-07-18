@@ -32,16 +32,20 @@ class bcolors:
 @tenacity.retry(wait=tenacity.wait_fixed(2), retry=tenacity.retry_if_exception_type(ApiRequestError))
 def traverse(current_folder, current_path):
     global moved_count, deleted_count
-    for file_list in drive.ListFile({'q': f"'{current_folder['id']}' in parents and trashed=false", 'maxResults': 100}):
-        for file_ in file_list:
-            if file_['mimeType'] == 'application/vnd.google-apps.folder':
+    if (current_folder == root):
+        for file_list in drive.ListFile({'q': f"'{current_folder['id']}' in parents and mimeType='application/vnd.google-apps.folder' and trashed=false", 'maxResults': 100}):
+            for file_ in file_list:
                 traverse(file_, current_path+"/"+file_['title'])
-            elif (current_folder != root):
-                print ( f"Moving {current_path}/{file_['title']}")
-                file_['parents'] = [{'kind': 'drive#parentReference', 'id': root['id']}]
-                file_.Upload()
-                moved_count += 1
-    if (current_folder != root):
+    else:
+        for file_list in drive.ListFile({'q': f"'{current_folder['id']}' in parents and trashed=false", 'maxResults': 100}):
+            for file_ in file_list:
+                if file_['mimeType'] == 'application/vnd.google-apps.folder':
+                    traverse(file_, current_path+"/"+file_['title'])
+                else:
+                    print ( f"Moving {current_path}/{file_['title']}")
+                    file_['parents'] = [{'kind': 'drive#parentReference', 'id': root['id']}]
+                    file_.Upload()
+                    moved_count += 1
         delete_empty (current_folder, current_path)
         deleted_count += 1
 
