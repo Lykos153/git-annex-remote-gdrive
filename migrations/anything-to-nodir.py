@@ -33,11 +33,11 @@ class bcolors:
 def traverse(current_folder, current_path):
     global moved_count, deleted_count
     if (current_folder == root):
-        for file_list in drive.ListFile({'q': f"'{current_folder['id']}' in parents and mimeType='application/vnd.google-apps.folder' and trashed=false", 'maxResults': 100}):
+        for file_list in drive.ListFile({'q': f"'{current_folder['id']}' in parents and mimeType='application/vnd.google-apps.folder' and trashed=false", 'maxResults': 100, 'orderBy': 'title'}):
             for file_ in file_list:
                 traverse(file_, current_path+"/"+file_['title'])
     else:
-        for file_list in drive.ListFile({'q': f"'{current_folder['id']}' in parents and trashed=false", 'maxResults': 100}):
+        for file_list in drive.ListFile({'q': f"'{current_folder['id']}' in parents and trashed=false", 'maxResults': 100, 'orderBy': 'title'}):
             for file_ in file_list:
                 if file_['mimeType'] == 'application/vnd.google-apps.folder':
                     traverse(file_, current_path+"/"+file_['title'])
