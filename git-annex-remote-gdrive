@@ -162,7 +162,11 @@ while read -r line; do
 			getconfig gdrive_layout
 			if [ -z "$RET" ]; then
 				getconfig rclone_layout
-				if [ "$RET" ]; then echo "Importing rclone layout $RET" >&2 ; fi
+				if [ "$RET" ]; then
+					echo "Importing rclone layout $RET" >&2
+					setconfig rclone_layout ""
+					setconfig target ""
+				fi
 			fi
 			GDRIVE_LAYOUT=$RET
 			if ! validate_layout; then
