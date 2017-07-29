@@ -2,7 +2,7 @@
 
 This script converts any folder structure on Google Drive to a `nodir` repository layout. It will recursively move all files in subdirectories to the top folder.
 
-__Stability note:__ This script has been sucessfully tested on various remotes with ~50000 keys. _Although it should be reliable, please make sure you have additional copies of all data before you proceed. After the migration is finished, run [fsck](https://git-annex.branchable.com/git-annex-fsck/) on the remote._
+__Stability note:__ This script has been sucessfully tested on various remotes with ~150000 keys. _Although it should be reliable, please make sure you have additional copies of all data before you proceed. After the migration is finished, run [fsck](https://git-annex.branchable.com/git-annex-fsck/) on the remote._
 
 ## Requirements
 This scripts requires Python 3.6 and the libraries argparse, [pydrive](https://github.com/googledrive/PyDrive) and [tenacity](https://github.com/jd/tenacity).
@@ -59,7 +59,7 @@ You can use the `--token` option for this.
 
 ## Issues, Contributing
 
-The migration is not very fast (~20 files / minute). PyDrive [still uses Google's API v2](https://github.com/googledrive/PyDrive/issues/99#issuecomment-314091631), maybe that's why - maybe not. The API calls could be done asynchronously as well. Fortunately it has to be run only once and we can keep using the repo meanwhile.
+The migration is not very fast (~25 files / minute). PyDrive [still uses Google's API v2](https://github.com/googledrive/PyDrive/issues/99#issuecomment-314091631), maybe that's why - maybe not. The API calls could be done asynchronously as well. Fortunately it has to be run only once and we can keep using the repo meanwhile.
 
 If you run into any problems, please check for issues on [GitHub](https://github.com/Lykos153/git-annex-remote-gdrive/issues).
 Please submit a pull request or create a new issue for problems or potential improvements.
