@@ -125,6 +125,18 @@ ask () {
 	fi
 }
 
+getcreds () {
+	echo GETCREDS gdrive_credentials
+	read -r resp
+    # Strip trailing carriage return, if present
+    resp="${resp%$'\r'}"
+	if echo $resp|grep '^CREDS '>/dev/null; then
+	    RET=$(echo "$resp" | cut -f2- -d' ')
+    	else
+	    RET=""
+	fi
+}
+
 # Needed by getfolderid before it is set in INITREMOTE or PREPARE
 ROOT_ID='root'
 
@@ -159,6 +171,28 @@ while read -r line; do
 			fi
 			setconfig config_path $CONFIG_PATH
 
+
+			if [ -z "$CONFIG_PATH" ]; then
+				getconfig storecreds
+				STORE_CREDS=$RET
+				setconfig storecreds "$STORE_CREDS"
+				if [ "$STORE_CREDS" == "yes" ]; then
+					ask GETGITDIR
+					GITDIR=$RET
+					ask GETUUID
+					UUID=$RET
+					CONFIG_PATH="$GITDIR/annex/misctmp/gdrive_$UUID"
+					mkdir -p "$CONFIG_PATH"
+					getcreds
+					if [ -z "$RET" ] && [ ! -f "$CONFIG_PATH"/token_v2.json ]; then
+						echo INITREMOTE-FAILURE "Please run 'gdrive about -c $CONFIG_PATH' and follow the instructions. Then re-run git annex initremote (or enableremote)."
+						exit 1
+					elif [ ! -f "$CONFIG_PATH"/token_v2.json ]; then
+						echo "$RET" > "$CONFIG_PATH"/token_v2.json
+					fi
+					CONFIG=" -c $CONFIG_PATH"
+				fi
+			fi
 
 			getconfig prefix
 			REMOTE_PREFIX=$RET
@@ -199,6 +233,13 @@ while read -r line; do
            		if getfolderid $REMOTE_PREFIX; then
 				ROOT_ID="$FID"
 				setconfig root_id $ROOT_ID
+
+				if [ "$STORE_CREDS" == "yes" ]; then
+					CREDENTIALS=$(tr -d '[:space:]' < "$CONFIG_PATH"/token_v2.json)
+					echo SETCREDS gdrive_credentials "$CREDENTIALS"
+					rm "$CONFIG_PATH"/token_v2.json
+				fi
+
            			echo INITREMOTE-SUCCESS
            		else
            	     		echo INITREMOTE-FAILURE "Failed to create directory on remote. Ensure that gdrive has been configured correctly and has permission to access your Drive."
@@ -215,6 +256,23 @@ while read -r line; do
 			if ! validate_config_path; then
 				echo "PREPARE-FAILURE No config found. Please run 'gdrive about$CONFIG'"
 				exit 1
+			fi
+
+			
+			if [ -z "$CONFIG_PATH" ]; then
+				getconfig storecreds
+				STORE_CREDS=$RET
+				if [ "$STORE_CREDS" == "yes" ]; then
+					ask GETGITDIR
+					GITDIR=$RET
+					ask GETUUID
+					UUID=$RET
+					CONFIG_PATH="$GITDIR/annex/misctmp/gdrive_$UUID"
+					mkdir -p "$CONFIG_PATH"
+					getcreds
+					echo "$RET" > "$CONFIG_PATH"/token_v2.json
+					CONFIG=" -c $CONFIG_PATH"
+				fi
 			fi
 
 
@@ -347,3 +405,8 @@ done
 
 
 # XXX anything that needs to be done at shutdown can be done here
+if [ "$STORE_CREDS" == "yes" ]; then
+	CREDENTIALS=$(tr -d '[:space:]' < "$CONFIG_PATH"/token_v2.json)
+	echo SETCREDS gdrive_credentials "$CREDENTIALS"
+	rm "$CONFIG_PATH"/token_v2.json
+fi
