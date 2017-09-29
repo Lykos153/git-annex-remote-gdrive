@@ -205,7 +205,7 @@ class GoogleRemote(AnnexRemote.SpecialRemote):
 def main():
     if len(sys.argv) == 2 and sys.argv[1] == "setup":
         with open(os.devnull, 'w') as devnull:
-            master = RemoteMaster(devnull)
+            master = AnnexRemote.Master(devnull)
             remote = GoogleRemote(master)
             remote.setup()
         return
@@ -215,7 +215,7 @@ def main():
     output = sys.stdout
     sys.stdout = sys.stderr
 
-    master = RemoteMaster(output)
+    master = AnnexRemote.Master(output)
     master.LinkRemote(GoogleRemote(master))
     master.Listen(sys.stdin)
 
