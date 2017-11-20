@@ -20,7 +20,7 @@ The current version of git-annex-remote-gdrive has been tested with gdrive versi
 ## Installation
 
    1. [Install git-annex](https://git-annex.branchable.com/install/)
-   2. [Install gdrive](https://github.com/prasmussen/gdrive) into your $PATH, e.g. `/usr/local/bin`
+   2. [Install gdrive](https://github.com/prasmussen/gdrive) into your $PATH, e.g. `/usr/local/bin` (There is an [AUR](https://aur.archlinux.org/packages/git-annex-remote-gdrive) package available for Arch Linux.)
    3. Copy `git-annex-remote-gdrive` into your $PATH
 
 ## Usage
