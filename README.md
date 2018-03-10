@@ -1,14 +1,14 @@
 # git-annex gdrive special remote
 
 ## Maintenance note
-___[gdrive](https://github.com/prasmussen/gdrive) has been discontinued.___ `git-annex-remote-gdrive` should still work fine until maybe Google changes something on their side. I'm working on a Python-based replacement which will include some additional features such as
+___[gdrive](https://github.com/prasmussen/gdrive) has been discontinued.___ `git-annex-remote-gdrive` should still work fine until maybe Google changes something on their side. The Python-based successor [git-annex-remote-googledrive](https://github.com/Lykos153/git-annex-remote-googledrive), however, includes some additional features such as
 
 * [exporttree remotes](https://git-annex.branchable.com/git-annex-export)
 * storing the credentials within the repository
 * using different Google accounts simultaniously
 * being even faster by keeping the HTTP connection open
 
-It'll be available on github soon.
+Try it now!
 
 ## Overview
 This wrapper around gdrive based on [git-annex-remote-rclone](https://github.com/DanielDent/git-annex-remote-rclone) aims to add direct support for Google Drive to git-annex. I forked it in order to bypass some very annoying performance issues I was having with Google Drive via rclone.
